@@ -1,4 +1,4 @@
-export const metadata = { title: "Գաղտնիություն — Ջերմ" };
+﻿export const metadata = { title: "Գաղտնիություն — DateMe" };
 
 export default function PrivacyPage() {
   return (

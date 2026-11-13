@@ -1,12 +1,13 @@
 import { getById, updateInvite, publicInvite } from "@/lib/store";
+import { answerMessage, creatorButtons, openedMessage, sendTelegram } from "@/lib/telegram";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request, { params }) {
   const existing = await getById(params.id);
-  if (!existing) return Response.json({ error: "Հրավերը չի գտնվել" }, { status: 404 });
+  if (!existing) return Response.json({ error: "Not found" }, { status: 404 });
   if (existing.expiresAt < Date.now()) {
-    return Response.json({ error: "Հրավերի ժամկետն անցել է" }, { status: 410 });
+    return Response.json({ error: "Expired" }, { status: 410 });
   }
   const body = await request.json().catch(() => ({}));
 
@@ -15,11 +16,17 @@ export async function POST(request, { params }) {
     return Response.json({ ok }, { status: ok ? 200 : 400 });
   }
 
+  let notifyOpen = false;
+  let notifyAnswer = false;
+
   const invite = await updateInvite(existing.id, async (current) => {
     const response = { ...current.response };
     if (body.type === "open") {
       response.openedCount += 1;
-      if (!response.openedAt) response.openedAt = Date.now();
+      if (!response.openedAt) {
+        response.openedAt = Date.now();
+        notifyOpen = true;
+      }
     }
     if (body.type === "no") {
       const count = Number(body.count) || 0;
@@ -38,9 +45,19 @@ export async function POST(request, { params }) {
         }
       }
       response.picks = picks;
+      notifyAnswer = true;
     }
     return { ...current, response };
   });
+
+  if (invite?.telegramChatId) {
+    if (notifyOpen) {
+      await sendTelegram(invite.telegramChatId, openedMessage(invite), creatorButtons(invite));
+    }
+    if (notifyAnswer) {
+      await sendTelegram(invite.telegramChatId, answerMessage(invite), creatorButtons(invite));
+    }
+  }
 
   return Response.json(publicInvite(invite), { headers: { "Cache-Control": "no-store" } });
 }

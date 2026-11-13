@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import BrandLogo from "@/components/BrandLogo";
+import { LOCALES } from "@/lib/i18n";
+import { useLanguage } from "@/components/LanguageProvider";
 
 function quiet(path) {
   return path === "/preview" || path.startsWith("/i/");
@@ -18,17 +21,19 @@ export function RefCapture() {
 
 export function SiteHeader() {
   const path = usePathname();
+  const { dict, locale, setLocale } = useLanguage();
   if (quiet(path)) return null;
   return (
     <header className="nav">
-      <Link href="/" className="logo" aria-label="Ջերմ, գլխավոր էջ">
-        <span className="logo-heart" aria-hidden="true">♥</span>
-        Ջերմ
-      </Link>
+      <BrandLogo href="/" size="nav" />
       <nav>
-        <Link href="/ideas">Գաղափարներ</Link>
-        <Link href="/partners">Գործընկերներ</Link>
-        <Link href="/create" className="nav-cta">Ստեղծել</Link>
+        <div className="lang-switch" role="group" aria-label="Language">
+          {LOCALES.map((code) => (
+            <button key={code} type="button" className={locale === code ? "on" : ""} onClick={() => setLocale(code)}>
+              {code.toUpperCase()}
+            </button>
+          ))}
+        </div>
       </nav>
     </header>
   );
@@ -36,18 +41,17 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   const path = usePathname();
+  const { dict } = useLanguage();
   if (quiet(path)) return null;
   return (
     <footer className="footer">
       <div>
-        <strong>Ջերմ</strong>
-        <p>Առցանց հրավեր հանդիպման՝ Հայաստանի համար։</p>
+        <BrandLogo href="/" size="footer" />
+        <p>{dict.footer.tagline}</p>
       </div>
       <div className="footer-links">
-        <Link href="/privacy">Գաղտնիություն</Link>
-        <Link href="/offer">Օֆերտա</Link>
-        <Link href="/ideas">Գաղափարներ</Link>
-        <Link href="/partners">Գործընկերային ծրագիր</Link>
+        <Link href="/privacy">{dict.footer.privacy}</Link>
+        <Link href="/offer">{dict.footer.offer}</Link>
       </div>
     </footer>
   );

@@ -1,7 +1,7 @@
-import { Suspense } from "react";
+﻿import { Suspense } from "react";
 import CreateApp from "./CreateApp";
 
-export const metadata = { title: "Ստեղծել հրավեր — Ջերմ" };
+export const metadata = { title: "Ստեղծել հրավեր — DateMe" };
 
 export default function CreatePage() {
   return (

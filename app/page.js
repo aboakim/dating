@@ -1,92 +1,153 @@
-import Link from "next/link";
-import { EDIT_PRICE, EXTEND_PLANS, PRICE } from "@/lib/catalog";
-import { amd } from "@/lib/format";
+"use client";
 
-const FEATURES = [
-  ["Փախչող «Ոչ»", "Կոճակը փախչում է, փոքրանում կամ անհետանում։ «Այո»-ից հետո էկրանը լցվում է սրտերով։"],
-  ["Օր ու ժամ", "Կամ դու ես նշում օրը, կամ հյուրն ինքն է ընտրում մոտակա երեք շաբաթից։"],
-  ["Վայր, սեղան, ֆիլմ", "Կասկադ, Սևան, խորոված, գինի կամ քո տարբերակները։"],
-  ["Ինչպես բացվի", "Անմիջապես, ժամաչափ, ջնջվող շերտ, ծրար կամ 4 թվանոց կոդ։"],
-  ["Նկար, ձայն, շրջան", "Լուսանկարը պտտվում է սկավառակի պես, ձայնը և կարճ տեսանյութը նստում են հարցի վրա։"],
-  ["Պատասխանը քեզ մոտ", "Առանձին հղումով տեսնում ես բացումը, «ոչ»-ի փորձերը և ընտրված օրը։"]
-];
+import Link from "next/link";
+import BrandLogo from "@/components/BrandLogo";
+import FallingHearts from "@/components/FallingHearts";
+import HeroCupid from "@/components/HeroCupid";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function HomePage() {
+  const { dict } = useLanguage();
+  const L = dict.landing;
+
   return (
-    <main>
+    <main className="landing">
       <section className="hero wrap">
-        <div>
-          <p className="eyebrow">Հայաստանի համար</p>
-          <h1>առցանց հրավեր <span>հանդիպման</span></h1>
+        <FallingHearts />
+        <div className="hero-copy enter-up">
+          <div className="brand-mark">
+            <BrandLogo href={null} size="hero" showAura />
+          </div>
+          <div className="hero-title-row">
+            <h1>
+              <span className="title-line">{L.title1}</span>
+              <span className="title-line">{L.title1b}</span>
+              <span className="title-accent">{L.title2}</span>
+            </h1>
+            <HeroCupid size="inline" />
+          </div>
           <div className="pills">
-            <Link href="/create?audience=her">աղջկա համար</Link>
-            <Link href="/create?audience=him">տղայի համար</Link>
+            <Link href="/create?audience=her" className="pill-her">{L.forHer}</Link>
+            <Link href="/create?audience=him" className="pill-him">{L.forHim}</Link>
           </div>
-          <p className="lead">Ստեղծիր ջերմ հրավեր և ուղարկիր հղումը այն մարդուն, ում ուզում ես տեսնել։ Նա կբացի հեռախոսով, կասի այո և կընտրի օրը։</p>
+          <p className="lead">{L.lead}</p>
           <div className="hero-actions">
-            <Link className="btn btn-solid" href="/create">Ստեղծել հրավեր</Link>
-            <Link className="btn btn-ghost" href="/preview">Փորձել օրինակը</Link>
+            <Link className="btn btn-solid" href="/create">{L.cta}</Link>
+            <Link className="btn btn-ghost" href="/preview">{L.trySample}</Link>
           </div>
         </div>
-        <div className="phone hero-phone" aria-hidden="true">
-          <div className="invite" style={{ "--accent": "#F85589", "--soft": "#FFE8EF", background: "#FFF5F8", color: "#2D1926" }}>
-            <div className="stage">
-              <div className="ask">
-                <p className="eyebrow">Նարեկից</p>
-                <h2>Անի, կգա՞ս ինձ հետ հանդիպման</h2>
-                <p className="sub">Կասկադ, հետո մի բաժակ գինի</p>
-                <div className="ask-actions">
-                  <span className="btn btn-solid">Այո</span>
-                  <span className="btn btn-no">Ոչ</span>
-                </div>
-              </div>
+        <div className="phone hero-phone enter-phone" aria-hidden="true">
+          <div className="phone-brand-screen">
+            <span className="phone-brand-heart">♥</span>
+            <strong>DateMe</strong>
+          </div>
+        </div>
+      </section>
+
+      <section className="wrap section how-section">
+        <h2>{L.howTitle}</h2>
+        <div className="how-steps">
+          <article className="how-step">
+            <div className="how-visual how-visual-create" aria-hidden="true">
+              <span className="how-phone">
+                <i className="how-line" />
+                <i className="how-line short" />
+                <i className="how-heart">♥</i>
+              </span>
             </div>
-          </div>
+            <p className="how-num">1</p>
+            <h3>{L.how1t}</h3>
+            <p>{L.how1d}</p>
+          </article>
+          <article className="how-step">
+            <div className="how-visual how-visual-send" aria-hidden="true">
+              <span className="how-bubble">♥</span>
+              <span className="how-link">↗</span>
+            </div>
+            <p className="how-num">2</p>
+            <h3>{L.how2t}</h3>
+            <p>{L.how2d}</p>
+          </article>
+          <article className="how-step">
+            <div className="how-visual how-visual-reply" aria-hidden="true">
+              <span className="how-tg">
+                <b>TG</b>
+                <i>♥</i>
+              </span>
+            </div>
+            <p className="how-num">3</p>
+            <h3>{L.how3t}</h3>
+            <p>{L.how3d}</p>
+          </article>
         </div>
       </section>
 
-      <section className="wrap section">
-        <h2>Ինչպես է ստացվում</h2>
-        <div className="cards">
-          <article><b>1</b><h3>Հավաքիր 2 րոպեում</h3><p>Անուն, հարց, բացման ձև, օր և վայր։ Աջ կողմում տեսնում ես հեռախոսը։</p></article>
-          <article><b>2</b><h3>Ուղարկիր հղում կամ QR</h3><p>Telegram, WhatsApp կամ Viber։ Գրանցում չկա։</p></article>
-          <article><b>3</b><h3>Տես պատասխանը</h3><p>Քո էջում երևում է այոն, օրը, ժամը և ինչ են ընտրել։</p></article>
-        </div>
-      </section>
-
-      <section className="wrap section">
-        <h2>Ինչ կա ներսում</h2>
+      <section className="wrap section features-section">
+        <h2>{L.featuresTitle}</h2>
         <div className="feature-grid">
-          {FEATURES.map(([title, text]) => (
-            <article key={title}><h3>{title}</h3><p>{text}</p></article>
-          ))}
+          {L.features.map((item) => {
+            const [title, text, icon] = item;
+            return (
+              <article key={title} className="feature-card">
+                <div className={`feature-visual feature-visual-${icon}`} aria-hidden="true">
+                  {icon === "no" ? (
+                    <>
+                      <span className="fv-btn yes">Այո</span>
+                      <span className="fv-btn no">Ոչ</span>
+                      <span className="fv-heart">♥</span>
+                    </>
+                  ) : null}
+                  {icon === "when" ? (
+                    <>
+                      <span className="fv-cal">
+                        <b>19</b>
+                        <small>30</small>
+                      </span>
+                    </>
+                  ) : null}
+                  {icon === "place" ? (
+                    <>
+                      <span className="fv-chip">☕</span>
+                      <span className="fv-chip">🚶</span>
+                      <span className="fv-chip">🍽️</span>
+                    </>
+                  ) : null}
+                  {icon === "open" ? (
+                    <>
+                      <span className="fv-env">✉</span>
+                      <span className="fv-lock">4</span>
+                    </>
+                  ) : null}
+                  {icon === "media" ? (
+                    <>
+                      <span className="fv-disc spin" />
+                      <span className="fv-note">♪</span>
+                    </>
+                  ) : null}
+                  {icon === "reply" ? (
+                    <>
+                      <span className="fv-tg">TG</span>
+                      <span className="fv-dot">♥</span>
+                    </>
+                  ) : null}
+                </div>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </article>
+            );
+          })}
         </div>
-      </section>
-
-      <section className="wrap section price-band">
-        <div>
-          <h2>{amd(PRICE)}</h2>
-          <p>Մեկ հրավեր, մեկ վճարում, 30 օր։ Առանց բաժանորդագրության։</p>
-          <ul>
-            <li>Խմբագրում՝ {amd(EDIT_PRICE)}</li>
-            {EXTEND_PLANS.map((plan) => (
-              <li key={plan.days}>Երկարացում {plan.label}՝ {amd(plan.price)}</li>
-            ))}
-          </ul>
-          <p className="help">Idram, Telcell, ArCa և քարտ նախատեսված են ինտերֆեյսում։ Այս պատճենում գումար չի գանձվում, մինչև կկապվի վճարային կազմակերպությունը։</p>
-        </div>
-        <Link className="btn btn-solid" href="/create">Սկսել</Link>
       </section>
 
       <section className="wrap section">
-        <h2>Կարճ հարցեր</h2>
+        <h2>{L.faqTitle}</h2>
         <div className="faq">
-          <details><summary>Պե՞տք է գրանցվել</summary><p>Ոչ։ Հրավերից հետո ստանում ես երկու հղում. մեկը ուղարկում ես, մյուսը պահում ես քեզ համար։</p></details>
-          <details><summary>Ինչպե՞ս կիմանամ պատասխանը</summary><p>Քո էջը թարմանում է մի քանի վայրկյանը մեկ։ Այնտեղ երևում են բացումը, «ոչ»-ի փորձերը և ընտրված վայրը։</p></details>
-          <details><summary>Որքա՞ն է ապրում հղումը</summary><p>30 օր։ Կարող ես երկարացնել 30, 90 կամ 365 օրով։</p></details>
-          <details><summary>Ի՞նչ առիթների համար է</summary><p>Հանդիպում, ծննդյան օր, մարտի 8, տարեդարձ, կարոտ կամ ներողություն։ Տեքստերը կարելի է ամբողջովին փոխել։</p></details>
+          {L.faq.map(([q, a]) => (
+            <details key={q}><summary>{q}</summary><p>{a}</p></details>
+          ))}
         </div>
       </section>
     </main>
   );
 }
+

@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import InviteExperience from "@/components/InviteExperience";
-import { SAMPLE_INVITE } from "@/lib/catalog";
+import { useLanguage } from "@/components/LanguageProvider";
+import { sampleInvite } from "@/lib/catalog";
 
 export default function PreviewPage() {
+  const { dict, locale } = useLanguage();
   return (
     <main className="guest-page">
       <div className="preview-banner">
-        <span>Սա օրինակ է։ Պատասխանը չի պահվում։</span>
-        <Link href="/create">Ստեղծել քոնը</Link>
+        <span>{dict.preview.banner}</span>
+        <Link href="/create">{dict.preview.makeYours}</Link>
       </div>
-      <InviteExperience invite={SAMPLE_INVITE} mode="preview" />
+      <InviteExperience invite={sampleInvite(locale)} mode="preview" />
     </main>
   );
 }

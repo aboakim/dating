@@ -2,10 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/components/LanguageProvider";
+import FallingHearts from "@/components/FallingHearts";
 import { EDIT_PRICE, EXTEND_PLANS } from "@/lib/catalog";
 import { amd, formatDateISO, formatWhen } from "@/lib/format";
+import { botDeepLink } from "@/lib/telegramClient";
 
 export default function CreatorApp({ token }) {
+  const { dict, locale } = useLanguage();
+  const T = dict.creator;
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [qr, setQr] = useState("");
@@ -15,7 +20,7 @@ export default function CreatorApp({ token }) {
   async function load() {
     const response = await fetch(`/api/creator/${token}`, { cache: "no-store" });
     const body = await response.json();
-    if (!response.ok) throw new Error(body.error || "Չհաջողվեց բացել");
+    if (!response.ok) throw new Error(body.error || "Failed");
     setData(body);
   }
 
@@ -41,64 +46,76 @@ export default function CreatorApp({ token }) {
     });
     const payload = await response.json();
     if (!response.ok) {
-      setNote(payload.error || "Չհաջողվեց");
+      setNote(payload.error || "Failed");
       return;
     }
     setData(payload);
-    setNote("Պահվեց։ Գանձում չի եղել. վճարումը այս տարբերակում ցուցադրական է։");
+    setNote(T.paymentSoon);
   }
 
-  if (error) return <main className="center-page"><h1>{error}</h1></main>;
-  if (!data) return <main className="center-page">Բեռնում…</main>;
+  if (error) {
+    return (
+      <main className="center-page">
+        <FallingHearts />
+        <h1>{error}</h1>
+      </main>
+    );
+  }
+  if (!data) return <main className="center-page">{dict.common.loading}</main>;
 
   const guest = `${origin}/i/${data.id}`;
-  const shareText = `${data.recipientName}, քեզ համար մի հրավեր ունեմ`;
+  const shareText = `${data.recipientName}, ${T.shareText}`;
   const picks = Object.values(data.response?.picks || {});
+  const botUrl = botDeepLink(data.creatorToken);
 
   return (
     <main className="wrap dash">
-      <p className="eyebrow">Քո էջը</p>
-      <h1>{data.recipientName}ի հրավերը</h1>
-      <p className="lead">Այս հղումը միայն քոնն է։ Այստեղ երևում է՝ բացե՞լ են, քանի անգամ են փորձել «ոչ»-ը, և ինչ են ընտրել։</p>
+      <FallingHearts compact />
+      <p className="eyebrow">{T.eyebrow}</p>
+      <h1>{data.recipientName}{T.title}</h1>
+      <p className="lead">{T.lead}</p>
       <div className="stats">
-        <article><b>{data.response.openedCount}</b><span>բացում</span></article>
-        <article><b>{data.response.noAttempts}</b><span>«ոչ»-ի փորձ</span></article>
-        <article><b>{data.response.answer === "yes" ? "Այո" : "Դեռ ոչ"}</b><span>պատասխան</span></article>
+        <article><b>{data.response.openedCount}</b><span>{T.opens}</span></article>
+        <article><b>{data.response.noAttempts}</b><span>{T.noTries}</span></article>
+        <article><b>{data.response.answer === "yes" ? T.yes : T.notYet}</b><span>{T.answer}</span></article>
       </div>
       {data.response.answer === "yes" ? (
-        <section className="panel">
-          <h2>Ընտրել են</h2>
-          <p>{data.response.date ? `${formatDateISO(data.response.date)}, ${data.response.time}` : "Օրը դու ես նշել"}</p>
+        <section className="panel enter-up">
+          <h2>{T.picked}</h2>
+          <p>{data.response.date ? `${formatDateISO(data.response.date, data.locale || locale)}, ${data.response.time}` : T.youSetDate}</p>
           {picks.length ? <p>{picks.join(" · ")}</p> : null}
-          <p className="help">Պատասխանել են {formatWhen(data.response.answeredAt)}</p>
+          <p className="help">{T.answeredAt} {formatWhen(data.response.answeredAt, data.locale || locale)}</p>
         </section>
       ) : null}
       <section className="panel">
-        <h2>Հղում հյուրի համար</h2>
+        <h2>{T.guestLink}</h2>
         <div className="copy-row">
           <input readOnly value={guest} />
-          <button className="btn btn-solid" type="button" onClick={() => navigator.clipboard.writeText(guest)}>Պատճենել</button>
+          <button className="btn btn-solid" type="button" onClick={() => navigator.clipboard.writeText(guest)}>{dict.common.copy}</button>
         </div>
         <div className="share-row">
           <a className="btn btn-ghost" href={`https://t.me/share/url?url=${encodeURIComponent(guest)}&text=${encodeURIComponent(shareText)}`} target="_blank" rel="noreferrer">Telegram</a>
           <a className="btn btn-ghost" href={`https://wa.me/?text=${encodeURIComponent(`${shareText} ${guest}`)}`} target="_blank" rel="noreferrer">WhatsApp</a>
           <a className="btn btn-ghost" href={`viber://forward?text=${encodeURIComponent(`${shareText} ${guest}`)}`}>Viber</a>
+          {botUrl ? <a className="btn btn-solid" href={botUrl} target="_blank" rel="noreferrer">{T.bindBot}</a> : null}
         </div>
-        {qr ? <img className="qr" src={qr} alt="QR կոդ հրավերի համար" /> : null}
-        <p className="help">Գործում է մինչև {formatWhen(data.expiresAt)}։ Խմբագրում է մնացել՝ {data.editsLeft}։</p>
+        {qr ? <img className="qr" src={qr} alt="QR" /> : null}
+        <p className="help">{T.worksUntil} {formatWhen(data.expiresAt, data.locale || locale)}. {T.editsLeft} {data.editsLeft}.</p>
+        {data.telegramChatId ? <p className="help">Telegram ✓</p> : null}
       </section>
       <section className="panel">
-        <h2>Խմբագրել և երկարացնել</h2>
+        <h2>{T.editExtend}</h2>
+        <p className="help">{T.paymentSoon}</p>
         <div className="share-row">
-          <Link className="btn btn-solid" href={`/create?edit=${token}`}>Խմբագրել</Link>
-          <button className="btn btn-ghost" type="button" onClick={() => act({ action: "edit" })}>+1 խմբագրում · {amd(EDIT_PRICE)}</button>
+          <Link className="btn btn-solid" href={`/create?edit=${token}`}>{T.edit}</Link>
+          <button className="btn btn-ghost" type="button" onClick={() => act({ action: "edit" })}>{T.addEdit} · {amd(EDIT_PRICE)} <small className="soon-tag">{dict.common.comingSoon}</small></button>
         </div>
         <div className="plan-grid">
           {EXTEND_PLANS.map((plan) => (
             <button key={plan.days} className="plan" type="button" onClick={() => act({ action: "extend", days: plan.days })}>
-              <strong>{plan.label}</strong>
+              <strong>{plan.days}d</strong>
               <span>{amd(plan.price)}</span>
-              <small>+{plan.edits} խմբագրում</small>
+              <small>+{plan.edits} · {dict.common.comingSoon}</small>
             </button>
           ))}
         </div>

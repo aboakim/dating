@@ -1,20 +1,25 @@
 import { EXTEND_PLANS } from "@/lib/catalog";
 import { cleanContent } from "@/lib/validate";
 import { creatorView, getByToken, updateInvite } from "@/lib/store";
+import { botDeepLink } from "@/lib/telegram";
 
 export const dynamic = "force-dynamic";
 
+function withBot(invite) {
+  return { ...creatorView(invite), botUrl: botDeepLink(invite.creatorToken) };
+}
+
 export async function GET(_request, { params }) {
   const invite = await getByToken(params.token);
-  if (!invite) return Response.json({ error: "Էջը չի գտնվել" }, { status: 404 });
-  return Response.json(creatorView(invite), { headers: { "Cache-Control": "no-store" } });
+  if (!invite) return Response.json({ error: "Not found" }, { status: 404 });
+  return Response.json(withBot(invite), { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function PATCH(request, { params }) {
   const invite = await getByToken(params.token);
-  if (!invite) return Response.json({ error: "Էջը չի գտնվել" }, { status: 404 });
+  if (!invite) return Response.json({ error: "Not found" }, { status: 404 });
   if (invite.editsLeft < 1) {
-    return Response.json({ error: "Խմբագրումները վերջացել են" }, { status: 402 });
+    return Response.json({ error: "No edits left" }, { status: 402 });
   }
   try {
     const body = await request.json();
@@ -30,18 +35,20 @@ export async function PATCH(request, { params }) {
       price: current.price,
       method: current.method,
       ref: current.ref,
+      telegramChatId: current.telegramChatId,
+      telegramBoundAt: current.telegramBoundAt,
       response: current.response
     }));
-    return Response.json(creatorView(next));
+    return Response.json(withBot(next));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Չհաջողվեց պահել";
+    const message = error instanceof Error ? error.message : "Save failed";
     return Response.json({ error: message }, { status: 400 });
   }
 }
 
 export async function POST(request, { params }) {
   const invite = await getByToken(params.token);
-  if (!invite) return Response.json({ error: "Էջը չի գտնվել" }, { status: 404 });
+  if (!invite) return Response.json({ error: "Not found" }, { status: 404 });
   const body = await request.json().catch(() => ({}));
 
   if (body.action === "edit") {
@@ -49,12 +56,12 @@ export async function POST(request, { params }) {
       ...current,
       editsLeft: current.editsLeft + 1
     }));
-    return Response.json(creatorView(next));
+    return Response.json(withBot(next));
   }
 
   if (body.action === "extend") {
     const plan = EXTEND_PLANS.find((item) => item.days === Number(body.days));
-    if (!plan) return Response.json({ error: "Ընտրիր ժամկետը" }, { status: 400 });
+    if (!plan) return Response.json({ error: "Pick a plan" }, { status: 400 });
     const next = await updateInvite(invite.id, async (current) => {
       const base = Math.max(current.expiresAt, Date.now());
       return {
@@ -63,8 +70,8 @@ export async function POST(request, { params }) {
         editsLeft: current.editsLeft + plan.edits
       };
     });
-    return Response.json(creatorView(next));
+    return Response.json(withBot(next));
   }
 
-  return Response.json({ error: "Անհայտ գործողություն" }, { status: 400 });
+  return Response.json({ error: "Unknown action" }, { status: 400 });
 }

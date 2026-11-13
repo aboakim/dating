@@ -1,8 +1,8 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { DATE_IDEAS } from "@/lib/catalog";
 
 export const metadata = {
-  title: "Հանդիպման գաղափարներ Հայաստանում — Ջերմ",
+  title: "Հանդիպման գաղափարներ Հայաստանում — DateMe",
   description: "Երևան, Սևան, Գառնի, տուն և առաջին հանդիպում։ Գաղափարներ, որոնք կարելի է դնել հրավերի մեջ։"
 };
 

@@ -1,7 +1,7 @@
-import { EDIT_PRICE, EXTEND_PLANS, PRICE } from "@/lib/catalog";
+﻿import { EDIT_PRICE, EXTEND_PLANS, PRICE } from "@/lib/catalog";
 import { amd } from "@/lib/format";
 
-export const metadata = { title: "Օֆերտա — Ջերմ" };
+export const metadata = { title: "Օֆերտա — DateMe" };
 
 export default function OfferPage() {
   return (
