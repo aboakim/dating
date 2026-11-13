@@ -8,7 +8,7 @@ import { LOCALES } from "@/lib/i18n";
 import { useLanguage } from "@/components/LanguageProvider";
 
 function quiet(path) {
-  return path === "/preview" || path.startsWith("/i/");
+  return path === "/preview" || path.startsWith("/i/") || path.startsWith("/admin");
 }
 
 export function RefCapture() {

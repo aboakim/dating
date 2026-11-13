@@ -130,7 +130,21 @@ export default function CreateApp() {
   const [recordNote, setRecordNote] = useState("");
   const [qr, setQr] = useState("");
   const [origin, setOrigin] = useState("");
-  const catalog = useMemo(() => choiceCatalog(locale), [locale]);
+  const [enabledPacks, setEnabledPacks] = useState(null);
+  const catalog = useMemo(() => {
+    const all = choiceCatalog(locale);
+    if (!enabledPacks?.length) return all;
+    return Object.fromEntries(Object.entries(all).filter(([id]) => enabledPacks.includes(id)));
+  }, [locale, enabledPacks]);
+
+  useEffect(() => {
+    fetch("/api/admin/site")
+      .then((response) => response.json())
+      .then((data) => {
+        if (Array.isArray(data?.catalog?.enabledPacks)) setEnabledPacks(data.catalog.enabledPacks);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -198,6 +212,14 @@ export default function CreateApp() {
     const url = `${origin}/i/${result.id}`;
     import("qrcode").then((QR) => QR.toDataURL(url, { margin: 1, width: 240 }).then(setQr));
   }, [result, origin]);
+
+  useEffect(() => {
+    if (!result?.botUrl || result.edited) return;
+    const timer = window.setTimeout(() => {
+      window.location.href = result.botUrl;
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [result]);
 
   function patch(partial) {
     setDraft((current) => ({ ...current, ...partial, locale }));
@@ -327,15 +349,29 @@ export default function CreateApp() {
         <p className="eyebrow">{result.edited ? C.saved : C.ready}</p>
         <h1>{result.edited ? C.changesSaved : C.linkYours}</h1>
         <p className="lead">{C.sendLead}</p>
+        <div className="tg-steps">
+          <h2>{C.tgStepsTitle}</h2>
+          <ol>
+            <li>{C.tgStep1}</li>
+            <li>{C.tgStep2}</li>
+            <li>{C.tgStepSend}</li>
+            <li>{C.tgStep3}</li>
+          </ol>
+          {botUrl ? (
+            <a className="btn btn-solid" href={botUrl} rel="noreferrer">{C.openBot}</a>
+          ) : (
+            <p className="help">{C.botMissing}</p>
+          )}
+          {botUrl ? <p className="help">{C.botHelp}</p> : null}
+        </div>
         <label className="field">{C.guestLink}<input readOnly value={guest} /></label>
         <label className="field">{C.yourPage}<input readOnly value={mine} /></label>
         {qr ? <img className="qr" src={qr} alt="QR" /> : null}
         <div className="share-row">
           <button className="btn btn-solid" type="button" onClick={() => navigator.clipboard.writeText(guest)}>{C.copyLink}</button>
           <Link className="btn btn-ghost" href={`/c/${result.creatorToken}`}>{C.openMine}</Link>
-          {botUrl ? <a className="btn btn-solid" href={botUrl} target="_blank" rel="noreferrer">{C.openBot}</a> : null}
         </div>
-        {botUrl ? <p className="help">{C.botHelp}</p> : <p className="help">{C.freeNote}</p>}
+        <p className="help">{C.freeNote}</p>
       </main>
     );
   }
@@ -607,9 +643,7 @@ export default function CreateApp() {
                     <label className="field">{C.time}<input type="time" value={draft.when.time} onChange={(event) => patchDeep("when", { time: event.target.value })} /></label>
                   </div>
                 ) : (
-                  <label className="field">{C.timesCsv}
-                    <input value={draft.when.times.join(", ")} onChange={(event) => patchDeep("when", { times: event.target.value.split(",").map((item) => item.trim()).filter(Boolean) })} />
-                  </label>
+                  <p className="help">{C.freeTimeHelp}</p>
                 )}
               </Panel>
             </div>
@@ -735,7 +769,6 @@ export default function CreateApp() {
                   <input value={draft.telegram} onChange={(event) => patch({ telegram: event.target.value })} placeholder={C.telegramPlaceholder} />
                 </label>
                 <p className="help">{C.telegramHelp}</p>
-                <label className="field">{C.email}<input type="email" value={draft.email} onChange={(event) => patch({ email: event.target.value })} /></label>
               </Panel>
             </div>
           ) : null}

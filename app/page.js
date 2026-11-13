@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
 import FallingHearts from "@/components/FallingHearts";
@@ -9,9 +10,22 @@ import { useLanguage } from "@/components/LanguageProvider";
 export default function HomePage() {
   const { dict } = useLanguage();
   const L = dict.landing;
+  const [sections, setSections] = useState({ hero: true, how: true, features: true, faq: true });
+  const [faq, setFaq] = useState(L.faq);
+
+  useEffect(() => {
+    fetch("/api/admin/site")
+      .then((response) => response.json())
+      .then((data) => {
+        if (data?.sections) setSections({ hero: true, how: true, features: true, faq: true, ...data.sections });
+        if (Array.isArray(data?.landing?.faq) && data.landing.faq.length) setFaq(data.landing.faq);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <main className="landing">
+      {sections.hero !== false ? (
       <section className="hero wrap">
         <FallingHearts />
         <div className="hero-copy enter-up">
@@ -43,7 +57,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      ) : null}
 
+      {sections.how !== false ? (
       <section className="wrap section how-section">
         <h2>{L.howTitle}</h2>
         <div className="how-steps">
@@ -81,7 +97,9 @@ export default function HomePage() {
           </article>
         </div>
       </section>
+      ) : null}
 
+      {sections.features !== false ? (
       <section className="wrap section features-section">
         <h2>{L.featuresTitle}</h2>
         <div className="feature-grid">
@@ -138,15 +156,18 @@ export default function HomePage() {
           })}
         </div>
       </section>
+      ) : null}
 
+      {sections.faq !== false ? (
       <section className="wrap section">
         <h2>{L.faqTitle}</h2>
         <div className="faq">
-          {L.faq.map(([q, a]) => (
+          {faq.map(([q, a]) => (
             <details key={q}><summary>{q}</summary><p>{a}</p></details>
           ))}
         </div>
       </section>
+      ) : null}
     </main>
   );
 }

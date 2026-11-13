@@ -509,13 +509,10 @@ export default function InviteExperience({ invite, mode = "live", onEvent, focus
                 </button>
               ))}
             </div>
-            <div className="chips">
-              {(invite.when.times || []).map((slot) => (
-                <button key={slot} type="button" className={time === slot ? "chip on" : "chip"} onClick={() => setTime(slot)}>
-                  {slot}
-                </button>
-              ))}
-            </div>
+            <label className="field when-time">
+              <span>{dict.create?.time || "Time"}</span>
+              <input type="time" value={time} onChange={(event) => setTime(event.target.value)} />
+            </label>
             {error ? <p className="form-error">{error}</p> : null}
             <button className="btn btn-solid" type="button" onClick={() => continueFrom("when")}>{invite.when.button || dict.common.thisDay}</button>
           </div>
@@ -587,7 +584,9 @@ export default function InviteExperience({ invite, mode = "live", onEvent, focus
             <ScreenArt value={invite.finale?.emoji} />
             <p className="eyebrow">{dict.landing.yes}</p>
             <h2>{finaleText}</h2>
-            {date ? <p className="sub">{formatDateISO(date, locale)}{time ? `, ${time}` : ""}{place ? ` · ${place}` : ""}</p> : null}
+            {mode === "preview" && date ? (
+              <p className="sub">{formatDateISO(date, locale)}{time ? `, ${time}` : ""}{place ? ` · ${place}` : ""}</p>
+            ) : null}
             <p className="finale-wish">{dict.common.finaleWish}</p>
             {error ? (
               <button className="btn btn-solid" type="button" onClick={() => finish()}>{dict.common.tryAgainSave}</button>

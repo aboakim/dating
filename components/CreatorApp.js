@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useLanguage } from "@/components/LanguageProvider";
 import FallingHearts from "@/components/FallingHearts";
 import { EDIT_PRICE, EXTEND_PLANS } from "@/lib/catalog";
-import { amd, formatDateISO, formatWhen } from "@/lib/format";
+import { amd, formatWhen } from "@/lib/format";
 import { botDeepLink } from "@/lib/telegramClient";
 
 export default function CreatorApp({ token }) {
@@ -65,7 +65,6 @@ export default function CreatorApp({ token }) {
 
   const guest = `${origin}/i/${data.id}`;
   const shareText = `${data.recipientName}, ${T.shareText}`;
-  const picks = Object.values(data.response?.picks || {});
   const botUrl = botDeepLink(data.creatorToken);
 
   return (
@@ -82,26 +81,33 @@ export default function CreatorApp({ token }) {
       {data.response.answer === "yes" ? (
         <section className="panel enter-up">
           <h2>{T.picked}</h2>
-          <p>{data.response.date ? `${formatDateISO(data.response.date, data.locale || locale)}, ${data.response.time}` : T.youSetDate}</p>
-          {picks.length ? <p>{picks.join(" · ")}</p> : null}
-          <p className="help">{T.answeredAt} {formatWhen(data.response.answeredAt, data.locale || locale)}</p>
+          <p className="help">{T.privateNote}</p>
+          {data.response.answeredAt ? <p className="help">{T.answeredAt} {formatWhen(data.response.answeredAt, data.locale || locale)}</p> : null}
         </section>
       ) : null}
       <section className="panel">
-        <h2>{T.guestLink}</h2>
-        <div className="copy-row">
-          <input readOnly value={guest} />
-          <button className="btn btn-solid" type="button" onClick={() => navigator.clipboard.writeText(guest)}>{dict.common.copy}</button>
-        </div>
+        <h2>{T.sendViaBot}</h2>
         <div className="share-row">
-          <a className="btn btn-ghost" href={`https://t.me/share/url?url=${encodeURIComponent(guest)}&text=${encodeURIComponent(shareText)}`} target="_blank" rel="noreferrer">Telegram</a>
-          <a className="btn btn-ghost" href={`https://wa.me/?text=${encodeURIComponent(`${shareText} ${guest}`)}`} target="_blank" rel="noreferrer">WhatsApp</a>
-          <a className="btn btn-ghost" href={`viber://forward?text=${encodeURIComponent(`${shareText} ${guest}`)}`}>Viber</a>
           {botUrl ? <a className="btn btn-solid" href={botUrl} target="_blank" rel="noreferrer">{T.bindBot}</a> : null}
         </div>
-        {qr ? <img className="qr" src={qr} alt="QR" /> : null}
+        <div className={`tg-bind ${data.telegramChatId ? "on" : ""}`}>
+          {data.telegramChatId ? (
+            <p>✓ Բոտը կապված է։ Գրիր ստացողի @username-ը բոտում — կուղարկի ինքը։</p>
+          ) : (
+            <p>⚠ Նախ սեղմիր բոտը և Start, հետո բոտում գրիր @username</p>
+          )}
+        </div>
+        {data.deliveryStatus === "sent" ? <p className="help">{T.deliverySent}</p> : null}
+        {data.deliveryStatus === "pending" ? <p className="help">{T.deliveryPending}</p> : null}
         <p className="help">{T.worksUntil} {formatWhen(data.expiresAt, data.locale || locale)}. {T.editsLeft} {data.editsLeft}.</p>
-        {data.telegramChatId ? <p className="help">Telegram ✓</p> : null}
+        <details className="help">
+          <summary>{T.guestLink}</summary>
+          <div className="copy-row" style={{ marginTop: 8 }}>
+            <input readOnly value={guest} />
+            <button className="btn btn-ghost" type="button" onClick={() => navigator.clipboard.writeText(guest)}>{dict.common.copy}</button>
+          </div>
+        </details>
+        {qr ? <img className="qr" src={qr} alt="QR" /> : null}
       </section>
       <section className="panel">
         <h2>{T.editExtend}</h2>
